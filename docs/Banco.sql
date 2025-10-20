@@ -47,7 +47,7 @@ INSERT INTO `Cargo` (`idCargo`, `nomeCargo`) VALUES (4, 'Analista de Sistemas Jr
 -- Inserção de funcionários
 INSERT INTO `Funcionario` (`nomeFuncionario`, `email`, `senha`, `recebeValeTransporte`, `Cargo_idCargo`) 
 VALUES 
-('adm', 'adm@adm.com', '$2b$12$6ixafy0UKZx.A8ujEEDfnO2QH7IonQ/5/5UCqzQ51YvISdSO4VVle', 1, 1),
-('adm1', 'adm1@adm.com', '$2b$12$6ixafy0UKZx.A8ujEEDfnO2QH7IonQ/5/5UCqzQ51YvISdSO4VVle', 1, 1),
-('Hélio', 'helioesperidiao@gmail.com', '$2b$12$6ixafy0UKZx.A8ujEEDfnO2QH7IonQ/5/5UCqzQ51YvISdSO4VVle', 1, 1);
+('adm', 'adm@adm.com', '$2a$12$axuJefWt3TtXuHc4jzFfVeb4irESaE6Y5K297MQluljqbM0GCgeI.', 1, 1),
+('adm1', 'adm1@adm.com', '$2a$12$axuJefWt3TtXuHc4jzFfVeb4irESaE6Y5K297MQluljqbM0GCgeI.', 1, 1),
+('Hélio', 'helioesperidiao@gmail.com', '$2a$12$axuJefWt3TtXuHc4jzFfVeb4irESaE6Y5K297MQluljqbM0GCgeI.', 1, 1);
 

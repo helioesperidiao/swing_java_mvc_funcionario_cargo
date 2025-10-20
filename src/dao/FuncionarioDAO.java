@@ -1,119 +1,203 @@
 package dao;
 
+import org.mindrot.jbcrypt.BCrypt;
+
+import database.MysqlDatabase;
+import model.Funcionario;
+import model.Cargo;
+
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-import database.Banco;
-import model.Funcionario;
-
+/**
+ * Classe responsável por realizar operações no banco de dados
+ * relacionadas à entidade Funcionario.
+ */
 public class FuncionarioDAO {
 
-    // Método para criar um novo funcionário no banco de dados
-    public boolean create(Funcionario funcionario) {
-        String sql = "INSERT INTO Funcionario (nomeFuncionario, email, senha, recebeValeTransporte, Cargo_idCargo) VALUES (?, ?, ?, ?, ?)";
-        try (Connection conn = Banco.getConexao();
-                PreparedStatement stmt = conn.prepareStatement(sql)) {
+    private final MysqlDatabase database;
 
-            stmt.setString(1, funcionario.getNomeFuncionario());
-            stmt.setString(2, funcionario.getEmail());
-            stmt.setString(3, funcionario.getSenha());
-            stmt.setBoolean(4, funcionario.isRecebeValeTransporte());
-            stmt.setInt(5, funcionario.getCargo().getIdCargo());
-
-            stmt.executeUpdate();
-            return true;
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
-        }
+    // Construtor com injeção de dependência
+    public FuncionarioDAO(MysqlDatabase databaseInstance) {
+        System.out.println(">>>> FuncionarioDAO.constructor()");
+        this.database = databaseInstance;
     }
 
-    // Método para buscar um funcionário pelo ID
-    public Funcionario readById(int idFuncionario) {
-        String sql = "SELECT * FROM Funcionario WHERE idFuncionario = ?";
-        try (Connection conn = Banco.getConexao();
-                PreparedStatement stmt = conn.prepareStatement(sql)) {
+    // =========================
+    // CREATE
+    // =========================
+    public int create(Funcionario objFuncionario) throws SQLException {
+        System.out.println(">>>> FuncionarioDAO.create()");
 
-            stmt.setInt(1, idFuncionario);
-            ResultSet rs = stmt.executeQuery();
+        // Gera hash da senha
+        String hashedPassword = BCrypt.hashpw(objFuncionario.getSenha(), BCrypt.gensalt(12));
 
-            if (rs.next()) {
-                Funcionario funcionario = new Funcionario();
-                funcionario.setIdFuncionario(rs.getInt("idFuncionario"));
-                funcionario.setNomeFuncionario(rs.getString("nomeFuncionario"));
-                funcionario.setEmail(rs.getString("email"));
-                funcionario.setSenha(rs.getString("senha"));
-                funcionario.setRecebeValeTransporte(rs.getBoolean("recebeValeTransporte"));
-                funcionario.getCargo().setIdCargo((rs.getInt("Cargo_idCargo")));
-                return funcionario;
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
+        String SQL = "INSERT INTO Funcionario (nomeFuncionario, email, senha, recebeValeTransporte, Cargo_idCargo) " +
+                "VALUES (?, ?, ?, ?, ?);";
+
+        Connection conn = database.getConnection();
+        PreparedStatement stmt = conn.prepareStatement(SQL, Statement.RETURN_GENERATED_KEYS);
+
+        stmt.setString(1, objFuncionario.getNomeFuncionario());
+        stmt.setString(2, objFuncionario.getEmail());
+        stmt.setString(3, hashedPassword); // Salva hash, não senha plain
+        stmt.setBoolean(4, objFuncionario.isRecebeValeTransporte());
+        stmt.setInt(5, objFuncionario.getCargo().getIdCargo());
+
+        int affectedRows = stmt.executeUpdate();
+        if (affectedRows == 0) {
+            stmt.close();
+            throw new SQLException("Falha ao inserir funcionario");
         }
-        return null;
+
+        ResultSet rs = stmt.getGeneratedKeys();
+        int id = -1;
+        if (rs.next()) {
+            id = rs.getInt(1);
+        }
+        rs.close();
+        stmt.close();
+
+        if (id == -1) {
+            throw new SQLException("Falha ao obter ID do funcionario inserido");
+        }
+        return id;
     }
 
-    // Método para atualizar um funcionário existente
-    public boolean update(Funcionario funcionario) {
-        String sql = "UPDATE Funcionario SET nomeFuncionario = ?, email = ?, senha = ?, recebeValeTransporte = ?, Cargo_idCargo = ? WHERE idFuncionario = ?";
-        try (Connection conn = Banco.getConexao();
-                PreparedStatement stmt = conn.prepareStatement(sql)) {
+    // =========================
+    // DELETE
+    // =========================
+    public boolean delete(Funcionario objFuncionario) throws SQLException {
+        System.out.println(">>>> FuncionarioDAO.delete()");
+        String SQL = "DELETE FROM Funcionario WHERE idFuncionario = ?;";
 
-            stmt.setString(1, funcionario.getNomeFuncionario());
-            stmt.setString(2, funcionario.getEmail());
-            stmt.setString(3, funcionario.getSenha());
-            stmt.setBoolean(4, funcionario.isRecebeValeTransporte());
-            stmt.setInt(5, funcionario.getCargo().getIdCargo());
-            stmt.setInt(6, funcionario.getIdFuncionario());
+        Connection conn = database.getConnection();
+        PreparedStatement stmt = conn.prepareStatement(SQL);
+        stmt.setInt(1, objFuncionario.getIdFuncionario());
 
-            int linhasAfetadas = stmt.executeUpdate();
-            return linhasAfetadas > 0;
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
-        }
+        int affectedRows = stmt.executeUpdate();
+        stmt.close();
+        return affectedRows > 0;
     }
 
-    // Método para deletar um funcionário
-    public boolean delete(int idFuncionario) {
-        String sql = "DELETE FROM Funcionario WHERE idFuncionario = ?";
-        try (Connection conn = Banco.getConexao();
-                PreparedStatement stmt = conn.prepareStatement(sql)) {
+    // =========================
+    // UPDATE
+    // =========================
+    public boolean update(Funcionario objFuncionario) throws SQLException {
+        System.out.println(">>>> FuncionarioDAO.update()");
+        String SQL = "UPDATE Funcionario SET nomeFuncionario = ?, email = ?, senha = ?, " +
+                "recebeValeTransporte = ?, Cargo_idCargo = ? WHERE idFuncionario = ?;";
 
-            stmt.setInt(1, idFuncionario);
-            int linhasAfetadas = stmt.executeUpdate();
-            return linhasAfetadas > 0;
+        Connection conn = database.getConnection();
+        PreparedStatement stmt = conn.prepareStatement(SQL);
 
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
-        }
+        stmt.setString(1, objFuncionario.getNomeFuncionario());
+        stmt.setString(2, objFuncionario.getEmail());
+        stmt.setString(3, objFuncionario.getSenha());
+        stmt.setBoolean(4, objFuncionario.isRecebeValeTransporte());
+        stmt.setInt(5, objFuncionario.getCargo().getIdCargo());
+        stmt.setInt(6, objFuncionario.getIdFuncionario());
+
+        int affectedRows = stmt.executeUpdate();
+        stmt.close();
+        return affectedRows > 0;
     }
 
-    // Método para listar todos os funcionários
-    public List<Funcionario> readAll() {
+    // =========================
+    // FIND ALL
+    // =========================
+    public List<Funcionario> findAll() throws SQLException {
+        System.out.println(">>>> FuncionarioDAO.findAll()");
+        String SQL = "SELECT f.*, c.idCargo, c.nomeCargo FROM Funcionario f " +
+                "JOIN Cargo c ON f.Cargo_idCargo = c.idCargo;";
+
+        Connection conn = database.getConnection();
+        PreparedStatement stmt = conn.prepareStatement(SQL);
+        ResultSet rs = stmt.executeQuery();
+
         List<Funcionario> funcionarios = new ArrayList<>();
-        String sql = "SELECT * FROM Funcionario";
-        try (Connection conn = Banco.getConexao();
-                Statement stmt = conn.createStatement();
-                ResultSet rs = stmt.executeQuery(sql)) {
+        while (rs.next()) {
+            Funcionario f = new Funcionario();
+            f.setIdFuncionario(rs.getInt("idFuncionario"));
+            f.setNomeFuncionario(rs.getString("nomeFuncionario"));
+            f.setEmail(rs.getString("email"));
+            f.setSenha(rs.getString("senha"));
+            f.setRecebeValeTransporte(rs.getBoolean("recebeValeTransporte"));
 
-            while (rs.next()) {
-                Funcionario funcionario = new Funcionario();
-                funcionario.setIdFuncionario(rs.getInt("idFuncionario"));
-                funcionario.setNomeFuncionario(rs.getString("nomeFuncionario"));
-                funcionario.setEmail(rs.getString("email"));
-                funcionario.setSenha(rs.getString("senha"));
-                funcionario.setRecebeValeTransporte(rs.getBoolean("recebeValeTransporte"));
-                funcionario.getCargo().setIdCargo(rs.getInt("Cargo_idCargo"));
-                funcionarios.add(funcionario);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
+            Cargo c = new Cargo();
+            c.setIdCargo(rs.getInt("idCargo"));
+            c.setNomeCargo(rs.getString("nomeCargo"));
+            f.setCargo(c);
+
+            funcionarios.add(f);
         }
+
+        rs.close();
+        stmt.close();
         return funcionarios;
     }
+
+    // =========================
+    // FIND BY ID
+    // =========================
+    public Funcionario findById(int idFuncionario) throws SQLException {
+        List<Funcionario> result = findByField("idFuncionario", idFuncionario);
+        return result.isEmpty() ? null : result.get(0);
+    }
+
+    // =========================
+    // FIND BY FIELD
+    // =========================
+    public List<Funcionario> findByField(String field, Object value) throws SQLException {
+        System.out.println(">>>> FuncionarioDAO.findByField() - Campo: " + field + ", Valor: " + value);
+
+        if (!field.equals("idFuncionario") &&
+                !field.equals("nomeFuncionario") &&
+                !field.equals("email") &&
+                !field.equals("Cargo_idCargo")) {
+            throw new SQLException("Campo inválido para busca: " + field);
+        }
+
+        String SQL = "SELECT f.*, c.idCargo, c.nomeCargo FROM Funcionario f " +
+                "JOIN Cargo c ON f.Cargo_idCargo = c.idCargo " +
+                "WHERE f." + field + " = ?;";
+
+        Connection conn = database.getConnection();
+        PreparedStatement stmt = conn.prepareStatement(SQL);
+
+        if (value instanceof Integer) {
+            stmt.setInt(1, (Integer) value);
+        } else if (value instanceof String) {
+            stmt.setString(1, (String) value);
+        } else if (value instanceof Boolean) {
+            stmt.setBoolean(1, (Boolean) value);
+        } else {
+            stmt.close();
+            throw new SQLException("Tipo de valor inválido para busca");
+        }
+
+        ResultSet rs = stmt.executeQuery();
+        List<Funcionario> funcionarios = new ArrayList<>();
+        while (rs.next()) {
+            Funcionario f = new Funcionario();
+            f.setIdFuncionario(rs.getInt("idFuncionario"));
+            f.setNomeFuncionario(rs.getString("nomeFuncionario"));
+            f.setEmail(rs.getString("email"));
+            f.setSenha(rs.getString("senha"));
+            f.setRecebeValeTransporte(rs.getBoolean("recebeValeTransporte"));
+
+            Cargo c = new Cargo();
+            c.setIdCargo(rs.getInt("idCargo"));
+            c.setNomeCargo(rs.getString("nomeCargo"));
+            f.setCargo(c);
+
+            funcionarios.add(f);
+        }
+
+        rs.close();
+        stmt.close();
+        return funcionarios;
+    }
+
 }

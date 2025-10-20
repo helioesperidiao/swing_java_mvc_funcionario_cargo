@@ -2,45 +2,53 @@ package model;
 
 /**
  * Representa a entidade Funcionario do sistema.
- * 
+ *
  * Objetivo:
  * - Encapsular os dados de um funcionário.
  * - Garantir integridade dos atributos via getters e setters.
- * - Associar corretamente um funcionário a um Cargo.
  */
 public class Funcionario {
 
+    // Atributos privados
     private int idFuncionario;
     private String nomeFuncionario;
     private String email;
     private String senha;
     private boolean recebeValeTransporte;
-    private Cargo cargo; // Associação ao Cargo
+    private Cargo cargo; // Relacionamento com Cargo
 
     /**
      * Construtor padrão
      */
     public Funcionario() {
-        //System.out.println("⬆️  Funcionario.constructor()");
+        // System.out.println("⬆️ Funcionario.constructor()");
         this.cargo = new Cargo();
     }
 
     /**
-     * Retorna o ID do funcionário
-     * 
-     * @return int - identificador único do funcionário
+     * Construtor com parâmetros
      */
+    public Funcionario(int idFuncionario, String nomeFuncionario, String email,
+            String senha, boolean recebeValeTransporte, Cargo cargo) {
+        this.setIdFuncionario(idFuncionario);
+        this.setNomeFuncionario(nomeFuncionario);
+        this.setEmail(email);
+        this.setSenha(senha);
+        this.setRecebeValeTransporte(recebeValeTransporte);
+        this.setCargo(cargo);
+        // System.out.println("⬆️ Funcionario.constructor(...)");
+    }
+
+    // ============================
+    // Getters e Setters
+    // ============================
+
     public int getIdFuncionario() {
         return idFuncionario;
     }
 
     /**
-     * Define o ID do funcionário.
-     * 
-     * 🔹 Regra de domínio: ID sempre positivo
-     * 
-     * @param idFuncionario - número inteiro positivo
-     * @throws IllegalArgumentException se id <= 0
+     * Regra: idFuncionario deve ser maior que zero
      */
     public void setIdFuncionario(int idFuncionario) {
         if (idFuncionario <= 0) {
@@ -49,150 +57,119 @@ public class Funcionario {
         this.idFuncionario = idFuncionario;
     }
 
-    /**
-     * Retorna o nome do funcionário
-     * 
-     * @return String - nome do funcionário
-     */
     public String getNomeFuncionario() {
         return nomeFuncionario;
     }
 
     /**
-     * Define o nome do funcionário.
-     * 
-     * 🔹 Regra de domínio: nome não nulo, não vazio, mínimo 3 e máximo 64 caracteres
-     * 
-     * @param nomeFuncionario - nome do funcionário
-     * @throws IllegalArgumentException se inválido
+     * Regra: nome não pode ser nulo, vazio e deve ter entre 3 e 128 caracteres
      */
     public void setNomeFuncionario(String nomeFuncionario) {
         if (nomeFuncionario == null) {
-            throw new IllegalArgumentException("nomeFuncionario não pode ser null.");
+            throw new IllegalArgumentException("nomeFuncionario não pode ser nulo.");
         }
-        String nomeTrim = nomeFuncionario.trim();
-        if (nomeTrim.length() < 3) {
+
+        String nomeTrimmed = nomeFuncionario.trim();
+
+        if (nomeTrimmed.length() < 3) {
             throw new IllegalArgumentException("nomeFuncionario deve ter pelo menos 3 caracteres.");
         }
-        if (nomeTrim.length() > 64) {
-            throw new IllegalArgumentException("nomeFuncionario deve ter no máximo 64 caracteres.");
+
+        if (nomeTrimmed.length() > 128) {
+            throw new IllegalArgumentException("nomeFuncionario deve ter no máximo 128 caracteres.");
         }
-        this.nomeFuncionario = nomeTrim;
+
+        this.nomeFuncionario = nomeTrimmed;
     }
 
-    /**
-     * Retorna o email do funcionário
-     * 
-     * @return String - email do funcionário
-     */
     public String getEmail() {
         return email;
     }
 
     /**
-     * Define o email do funcionário.
-     * 
-     * 🔹 Regra de domínio: email válido, não vazio
-     * 
-     * @param email - email do funcionário
-     * @throws IllegalArgumentException se inválido
+     * Regra: email deve ser válido, não nulo, até 64 caracteres
      */
     public void setEmail(String email) {
         if (email == null) {
-            throw new IllegalArgumentException("email não pode ser null.");
+            throw new IllegalArgumentException("email não pode ser nulo.");
         }
-        String emailTrim = email.trim();
-        if (emailTrim.isEmpty()) {
+
+        String emailTrimmed = email.trim();
+
+        if (emailTrimmed.isEmpty()) {
             throw new IllegalArgumentException("email não pode ser vazio.");
         }
-        // Regex simples para validar email
-        if (!emailTrim.matches("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$")) {
-            throw new IllegalArgumentException("email em formato inválido.");
+
+        if (emailTrimmed.length() > 64) {
+            throw new IllegalArgumentException("email deve ter no máximo 64 caracteres.");
         }
-        this.email = emailTrim;
+
+        // Validação básica de formato de email
+        if (!emailTrimmed.contains("@") || !emailTrimmed.contains(".")) {
+            throw new IllegalArgumentException("email inválido.");
+        }
+
+        this.email = emailTrimmed;
     }
 
-    /**
-     * Retorna a senha do funcionário
-     * 
-     * @return String - senha
-     */
     public String getSenha() {
         return senha;
     }
 
     /**
-     * Define a senha do funcionário.
-     * 
-     * 🔹 Regra de domínio: mínimo 6 caracteres, pelo menos 1 maiúscula, 1 número e 1 caractere especial
-     * 
-     * @param senha - senha do funcionário
-     * @throws IllegalArgumentException se inválido
+     * Regra: senha não pode ser nula, deve ter entre 6 e 64 caracteres
      */
     public void setSenha(String senha) {
         if (senha == null) {
-            throw new IllegalArgumentException("senha não pode ser null.");
+            throw new IllegalArgumentException("senha não pode ser nula.");
         }
-        String senhaTrim = senha.trim();
-        if (senhaTrim.length() < 6) {
+
+        String senhaTrimmed = senha.trim();
+
+        if (senhaTrimmed.length() < 6) {
             throw new IllegalArgumentException("senha deve ter pelo menos 6 caracteres.");
         }
-        if (!senhaTrim.matches(".*[A-Z].*")) {
-            throw new IllegalArgumentException("senha deve conter pelo menos uma letra maiúscula.");
+
+        if (senhaTrimmed.length() > 64) {
+            throw new IllegalArgumentException("senha deve ter no máximo 64 caracteres.");
         }
-        if (!senhaTrim.matches(".*[0-9].*")) {
-            throw new IllegalArgumentException("senha deve conter pelo menos um número.");
-        }
-        if (!senhaTrim.matches(".*[!@#$%^&*(),.?\":{}|<>].*")) {
-            throw new IllegalArgumentException("senha deve conter pelo menos um caractere especial.");
-        }
-        this.senha = senhaTrim;
+
+        this.senha = senhaTrimmed;
     }
 
-    /**
-     * Retorna se o funcionário recebe vale transporte
-     * 
-     * @return boolean
-     */
     public boolean isRecebeValeTransporte() {
         return recebeValeTransporte;
     }
 
-    /**
-     * Define se o funcionário recebe vale transporte
-     * 
-     * @param recebeValeTransporte - true para sim, false para não
-     */
     public void setRecebeValeTransporte(boolean recebeValeTransporte) {
         this.recebeValeTransporte = recebeValeTransporte;
     }
 
-    /**
-     * Retorna o Cargo associado
-     * 
-     * @return Cargo
-     */
     public Cargo getCargo() {
         return cargo;
     }
 
     /**
-     * Define o Cargo do funcionário
-     * 
-     * @param cargo - instância válida de Cargo
-     * @throws IllegalArgumentException se cargo for null
+     * Regra: cargo não pode ser nulo
      */
     public void setCargo(Cargo cargo) {
         if (cargo == null) {
-            throw new IllegalArgumentException("cargo não pode ser null.");
+            throw new IllegalArgumentException("cargo não pode ser nulo.");
         }
         this.cargo = cargo;
     }
 
+    // ============================
+    // Método auxiliar para exibir informações
+    // ============================
     @Override
     public String toString() {
-        return "Funcionario [idFuncionario=" + idFuncionario + ", nomeFuncionario=" + nomeFuncionario +
-               ", email=" + email + ", recebeValeTransporte=" + recebeValeTransporte +
-               ", cargo=" + (cargo != null ? cargo.getNomeCargo() : "null") + "]";
+        return "Funcionario{" +
+                "idFuncionario=" + idFuncionario +
+                ", nomeFuncionario='" + nomeFuncionario + '\'' +
+                ", email='" + email + '\'' +
+                ", recebeValeTransporte=" + recebeValeTransporte +
+                ", cargo=" + (cargo != null ? cargo.getNomeCargo() : "null") +
+                '}';
     }
 }
