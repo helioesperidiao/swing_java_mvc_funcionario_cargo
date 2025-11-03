@@ -3,93 +3,111 @@ package forms;
 import control.FuncionarioControl;
 import dao.FuncionarioDAO;
 import database.MysqlDatabase;
-import model.Funcionario;
 import service.FuncionarioService;
 
 import javax.swing.*;
+
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.sql.SQLException;
 import java.util.Map;
 
+/**
+ * 🧑‍💼 LoginForm
+ *
+ * <p>
+ * Janela de login do sistema de Gestão de RH.
+ * </p>
+ *
+ * <p>
+ * Usa layout <b>null</b> (layout absoluto) para posicionamento manual dos
+ * componentes.
+ * </p>
+ * 
+ * 🧩 Padrão de arquitetura: MVC + Service + DAO.
+ */
 public class LoginForm extends JFrame {
 
+    // 🧱 Componentes de interface
     private JTextField txtEmail;
     private JPasswordField txtSenha;
     private JButton btnLogin;
 
+    // 🎛️ Controller responsável pelo login
     private FuncionarioControl funcionarioControl;
 
+    /**
+     * 🚀 Construtor — Inicializa dependências e interface
+     */
     public LoginForm() {
-        // Configura a conexão com o banco
-        MysqlDatabase database = new MysqlDatabase(
-                "127.0.0.1", "root", "", "gestao_rh", 3306);
+        // ⚙️ Configuração do banco
+        MysqlDatabase database = new MysqlDatabase("127.0.0.1", "root", "", "gestao_rh", 3306);
         FuncionarioDAO funcionarioDAO = new FuncionarioDAO(database);
         FuncionarioService funcionarioService = new FuncionarioService(funcionarioDAO);
         this.funcionarioControl = new FuncionarioControl(funcionarioService);
 
+        // 🧩 Inicializa interface
         initializeUI();
     }
 
+    /**
+     * 🎨 Cria a tela de login usando layout absoluto (null layout)
+     */
     private void initializeUI() {
         setTitle("Login - Sistema RH");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(400, 200);
-        setLocationRelativeTo(null);
+        setSize(500, 300);
+        setLocationRelativeTo(null); // Centraliza a janela
+        setResizable(false);
 
-        JPanel panel = new JPanel(new GridBagLayout());
-        panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5, 5, 5, 5);
-        gbc.fill = GridBagConstraints.HORIZONTAL;
+        // 🔲 Define layout absoluto
+        getContentPane().setLayout(null);
+        getContentPane().setBackground(new Color(245, 247, 250)); // cor suave de fundo
 
-        // Label Email
+        // 🏷️ Título
+        JLabel lblTitulo = new JLabel("Acesso ao Sistema RH", SwingConstants.CENTER);
+        lblTitulo.setFont(new Font("Segoe UI", Font.BOLD, 20));
+        lblTitulo.setBounds(100, 20, 300, 30);
+        getContentPane().add(lblTitulo);
+
+        // 📧 Label Email
         JLabel lblEmail = new JLabel("Email:");
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        gbc.weightx = 0;
-        panel.add(lblEmail, gbc);
+        lblEmail.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        lblEmail.setBounds(80, 80, 100, 25);
+        getContentPane().add(lblEmail);
 
+        // 📨 Campo Email
         txtEmail = new JTextField();
-        txtEmail.setPreferredSize(new Dimension(200, 30)); // Aumenta o tamanho
-        gbc.gridx = 1;
-        gbc.gridy = 0;
-        gbc.weightx = 1.0; // Campo ocupa mais espaço
-        gbc.gridwidth = 2;
-        panel.add(txtEmail, gbc);
+        txtEmail.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        txtEmail.setBounds(160, 80, 250, 30); // largura maior
+        getContentPane().add(txtEmail);
 
-        // Label Senha
+        // 🔑 Label Senha
         JLabel lblSenha = new JLabel("Senha:");
-        gbc.gridx = 0;
-        gbc.gridy = 1;
-        gbc.weightx = 0;
-        gbc.gridwidth = 1;
-        panel.add(lblSenha, gbc);
+        lblSenha.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        lblSenha.setBounds(80, 130, 100, 25);
+        getContentPane().add(lblSenha);
 
+        // 🔒 Campo Senha
         txtSenha = new JPasswordField();
-        txtSenha.setPreferredSize(new Dimension(200, 30)); // Aumenta o tamanho
-        gbc.gridx = 1;
-        gbc.gridy = 1;
-        gbc.weightx = 1.0;
-        gbc.gridwidth = 2;
-        panel.add(txtSenha, gbc);
+        txtSenha.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        txtSenha.setBounds(160, 130, 250, 30); // largura maior
+        getContentPane().add(txtSenha);
 
-        // Botão Login
-        btnLogin = new JButton("Login");
-        btnLogin.setPreferredSize(new Dimension(100, 30));
-        gbc.gridx = 0;
-        gbc.gridy = 2;
-        gbc.gridwidth = 3;
-        gbc.weightx = 0;
-        panel.add(btnLogin, gbc);
+        // 🔓 Botão Login
+        btnLogin = new JButton("Entrar");
+        btnLogin.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        btnLogin.setBackground(new Color(33, 150, 243));
+        btnLogin.setForeground(Color.BLACK);
+        btnLogin.setFocusPainted(false);
+        btnLogin.setBounds(190, 190, 120, 35);
+        getContentPane().add(btnLogin);
 
-        // Ação do botão
+        // 🖱️ Ação do botão
         btnLogin.addActionListener(e -> realizarLogin());
-
-        add(panel);
     }
 
+    /**
+     * 🔐 Realiza a autenticação do usuário
+     */
     private void realizarLogin() {
         String email = txtEmail.getText().trim();
         String senha = new String(txtSenha.getPassword());
@@ -104,20 +122,24 @@ public class LoginForm extends JFrame {
         if ((Boolean) response.get("success")) {
             JOptionPane.showMessageDialog(this, response.get("message"), "Sucesso", JOptionPane.INFORMATION_MESSAGE);
 
-            // Exemplo: mostrar o nome do funcionário logado
             Map<String, Object> data = (Map<String, Object>) response.get("data");
             String nomeFuncionario = (String) data.get("nomeFuncionario");
+
             System.out.println("Usuário logado: " + nomeFuncionario);
+
             MainForm main = new MainForm(nomeFuncionario);
             main.setVisible(true);
-            // Aqui você poderia abrir o formulário principal do sistema
-            // e fechar o login
+
+            // Fecha o login (opcional)
             // this.dispose();
         } else {
             JOptionPane.showMessageDialog(this, response.get("message"), "Erro", JOptionPane.ERROR_MESSAGE);
         }
     }
 
+    /**
+     * 🏁 Método principal — executa a tela de login
+     */
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             try {

@@ -3,7 +3,6 @@ package forms;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.awt.event.ActionEvent;
 import java.sql.SQLException;
 import java.util.*;
 import java.util.List;
@@ -18,8 +17,28 @@ import model.Cargo;
 import service.FuncionarioService;
 import service.CargoService;
 
+/**
+ * 🧩 Classe: FuncionarioForm
+ * -------------------------------------------------
+ * 📚 Responsável pela camada de *View* (interface gráfica)
+ * do módulo de funcionários no padrão MVC-S.
+ *
+ * 🏗️ Arquitetura:
+ * - View ➜ FuncionarioForm (interface Swing)
+ * - Controller ➜ FuncionarioControl
+ * - Service ➜ FuncionarioService
+ * - DAO ➜ FuncionarioDAO
+ * - Model ➜ Funcionario / Cargo
+ *
+ * ✅ Funcionalidades:
+ *  - Cadastrar, listar, atualizar e excluir funcionários.
+ *  - Pesquisar por nome ou e-mail.
+ *  - Relacionar funcionário a um cargo existente.
+ *  - Conectar ao banco MySQL.
+ */
 public class FuncionarioForm extends JFrame {
 
+    // 🧱 Campos do formulário
     private JTextField txtPesquisa;
     private JTextField txtId;
     private JTextField txtNome;
@@ -28,23 +47,33 @@ public class FuncionarioForm extends JFrame {
     private JCheckBox chkValeTransporte;
     private JComboBox<Cargo> cbCargo;
 
+    // 📋 Tabela de listagem
     private JTable tabelaFuncionarios;
     private DefaultTableModel tableModel;
 
+    // 🔘 Botões
     private JButton btnPesquisar;
     private JButton btnCadastrar;
     private JButton btnAtualizar;
     private JButton btnExcluir;
     private JButton btnLimpar;
 
+    // 🧩 Controllers (ligação com a lógica)
     private FuncionarioControl funcionarioControl;
     private CargoControl cargoControl;
 
+    /**
+     * 🚀 Construtor principal da tela de funcionários.
+     * - Inicializa a conexão com o banco.
+     * - Cria instâncias de DAO, Service e Control.
+     * - Monta a interface e carrega dados iniciais.
+     */
     public FuncionarioForm() {
+        // 🗄️ Cria conexão com o banco MySQL
         MysqlDatabase database = new MysqlDatabase(
                 "127.0.0.1", "root", "", "gestao_rh", 3306);
 
-        // Inicializa DAOs e Services
+        // ⚙️ Injeta dependências manualmente
         CargoDAO cargoDAO = new CargoDAO(database);
         CargoService cargoService = new CargoService(cargoDAO);
         this.cargoControl = new CargoControl(cargoService);
@@ -53,14 +82,18 @@ public class FuncionarioForm extends JFrame {
         FuncionarioService funcionarioService = new FuncionarioService(funcionarioDAO);
         this.funcionarioControl = new FuncionarioControl(funcionarioService);
 
+        // 🖥️ Inicializa a interface
         initializeUI();
         carregarTodosFuncionarios();
         carregarCargosCombo();
     }
 
+    /**
+     * 🎨 Configura toda a interface principal.
+     */
     private void initializeUI() {
         setTitle("Sistema de Gerenciamento de Funcionários");
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        //setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(900, 650);
         setLocationRelativeTo(null);
 
@@ -78,21 +111,29 @@ public class FuncionarioForm extends JFrame {
         add(mainPanel);
     }
 
+    /**
+     * 🧱 Cria o painel superior (pesquisa + formulário de dados).
+     */
     private JPanel criarPanelTopo() {
         JPanel panelTopo = new JPanel(new BorderLayout(10, 10));
 
+        // 🔍 Seção de pesquisa
         JPanel panelPesquisa = new JPanel(new FlowLayout(FlowLayout.LEFT));
         panelPesquisa.setBorder(BorderFactory.createTitledBorder("Pesquisa"));
+
         JLabel lblPesquisa = new JLabel("Pesquisar:");
         txtPesquisa = new JTextField(20);
         btnPesquisar = new JButton("Pesquisar");
+
         panelPesquisa.add(lblPesquisa);
         panelPesquisa.add(txtPesquisa);
         panelPesquisa.add(btnPesquisar);
 
+        // 🖱️ Eventos de pesquisa
         btnPesquisar.addActionListener(e -> pesquisarFuncionarios());
         txtPesquisa.addActionListener(e -> pesquisarFuncionarios());
 
+        // 📝 Seção de formulário
         JPanel panelFormulario = new JPanel(new GridBagLayout());
         panelFormulario.setBorder(BorderFactory.createTitledBorder("Dados do Funcionário"));
 
@@ -103,7 +144,7 @@ public class FuncionarioForm extends JFrame {
 
         JLabel lblId = new JLabel("ID:");
         txtId = new JTextField();
-        txtId.setEditable(false);
+        txtId.setEditable(false); // 🔒 Campo não editável
 
         JLabel lblNome = new JLabel("Nome:");
         txtNome = new JTextField();
@@ -120,7 +161,7 @@ public class FuncionarioForm extends JFrame {
         JLabel lblCargo = new JLabel("Cargo:");
         cbCargo = new JComboBox<>();
 
-        // Adiciona os campos no grid
+        // 🧩 Adiciona os campos no grid
         gbc.gridx = 0; gbc.gridy = 0; panelFormulario.add(lblId, gbc);
         gbc.gridx = 1; gbc.gridy = 0; panelFormulario.add(txtId, gbc);
 
@@ -145,6 +186,9 @@ public class FuncionarioForm extends JFrame {
         return panelTopo;
     }
 
+    /**
+     * 📋 Cria o painel central (tabela de listagem).
+     */
     private JPanel criarPanelTabela() {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setBorder(BorderFactory.createTitledBorder("Lista de Funcionários"));
@@ -154,8 +198,11 @@ public class FuncionarioForm extends JFrame {
             @Override
             public boolean isCellEditable(int row, int column) { return false; }
         };
+
         tabelaFuncionarios = new JTable(tableModel);
         tabelaFuncionarios.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+
+        // 🖱️ Evento: seleção de linha
         tabelaFuncionarios.getSelectionModel().addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting()) selecionarFuncionarioDaTabela();
         });
@@ -166,8 +213,12 @@ public class FuncionarioForm extends JFrame {
         return panel;
     }
 
+    /**
+     * 🔘 Cria o painel inferior com os botões de ação.
+     */
     private JPanel criarPanelBotoes() {
         JPanel panel = new JPanel(new FlowLayout());
+
         btnCadastrar = new JButton("Cadastrar");
         btnAtualizar = new JButton("Atualizar");
         btnExcluir = new JButton("Excluir");
@@ -184,6 +235,7 @@ public class FuncionarioForm extends JFrame {
         panel.add(btnExcluir);
         panel.add(btnLimpar);
 
+        // ⚙️ Define as ações
         btnCadastrar.addActionListener(e -> cadastrarFuncionario());
         btnAtualizar.addActionListener(e -> atualizarFuncionario());
         btnExcluir.addActionListener(e -> excluirFuncionario());
@@ -192,9 +244,12 @@ public class FuncionarioForm extends JFrame {
         return panel;
     }
 
+    /**
+     * 🔄 Carrega todos os funcionários do banco.
+     */
     private void carregarTodosFuncionarios() {
         try {
-            java.util.List<Funcionario> funcionarios = funcionarioControl.index();
+            List<Funcionario> funcionarios = funcionarioControl.index();
             atualizarTabela(funcionarios);
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(this,
@@ -203,6 +258,9 @@ public class FuncionarioForm extends JFrame {
         }
     }
 
+    /**
+     * 🧠 Carrega os cargos disponíveis no comboBox.
+     */
     private void carregarCargosCombo() {
         try {
             List<Cargo> cargos = cargoControl.index();
@@ -215,6 +273,9 @@ public class FuncionarioForm extends JFrame {
         }
     }
 
+    /**
+     * 🔍 Pesquisa funcionários por nome ou e-mail.
+     */
     private void pesquisarFuncionarios() {
         String termo = txtPesquisa.getText().trim();
         if (termo.isEmpty()) {
@@ -225,12 +286,14 @@ public class FuncionarioForm extends JFrame {
         try {
             List<Funcionario> funcionarios = funcionarioControl.index();
             List<Funcionario> filtrados = new ArrayList<>();
+
             for (Funcionario f : funcionarios) {
                 if (f.getNomeFuncionario().toLowerCase().contains(termo.toLowerCase()) ||
                     f.getEmail().toLowerCase().contains(termo.toLowerCase())) {
                     filtrados.add(f);
                 }
             }
+
             atualizarTabela(filtrados);
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(this,
@@ -239,6 +302,9 @@ public class FuncionarioForm extends JFrame {
         }
     }
 
+    /**
+     * ➕ Cadastra um novo funcionário.
+     */
     private void cadastrarFuncionario() {
         String nome = txtNome.getText().trim();
         String email = txtEmail.getText().trim();
@@ -247,7 +313,7 @@ public class FuncionarioForm extends JFrame {
         Cargo cargo = (Cargo) cbCargo.getSelectedItem();
 
         if (nome.isEmpty() || email.isEmpty() || senha.isEmpty() || cargo == null) {
-            JOptionPane.showMessageDialog(this, "Preencha todos os campos obrigatórios!");
+            JOptionPane.showMessageDialog(this, "⚠️ Preencha todos os campos obrigatórios!");
             return;
         }
 
@@ -259,16 +325,20 @@ public class FuncionarioForm extends JFrame {
             data.put("recebeValeTransporte", vale);
             data.put("cargo", cargo);
 
-            Funcionario f = funcionarioControl.store(data);
-            JOptionPane.showMessageDialog(this, "Funcionário cadastrado com sucesso!");
+            funcionarioControl.store(data);
+            JOptionPane.showMessageDialog(this, "✅ Funcionário cadastrado com sucesso!");
             limparCampos();
             carregarTodosFuncionarios();
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Erro ao cadastrar: " + e.getMessage(),
+            JOptionPane.showMessageDialog(this,
+                    "Erro ao cadastrar: " + e.getMessage(),
                     "Erro", JOptionPane.ERROR_MESSAGE);
         }
     }
 
+    /**
+     * ✏️ Atualiza os dados de um funcionário existente.
+     */
     private void atualizarFuncionario() {
         if (txtId.getText().isEmpty()) {
             JOptionPane.showMessageDialog(this, "Selecione um funcionário para atualizar!");
@@ -283,13 +353,13 @@ public class FuncionarioForm extends JFrame {
         Cargo cargo = (Cargo) cbCargo.getSelectedItem();
 
         if (nome.isEmpty() || email.isEmpty() || senha.isEmpty() || cargo == null) {
-            JOptionPane.showMessageDialog(this, "Preencha todos os campos obrigatórios!");
+            JOptionPane.showMessageDialog(this, "⚠️ Preencha todos os campos obrigatórios!");
             return;
         }
 
         Map<String, Object> response = funcionarioControl.update(id, nome, email, senha, vale, cargo);
         if ((Boolean) response.get("success")) {
-            JOptionPane.showMessageDialog(this, response.get("message"));
+            JOptionPane.showMessageDialog(this, "✅ " + response.get("message"));
             limparCampos();
             carregarTodosFuncionarios();
         } else {
@@ -299,6 +369,9 @@ public class FuncionarioForm extends JFrame {
         }
     }
 
+    /**
+     * 🗑️ Exclui um funcionário selecionado.
+     */
     private void excluirFuncionario() {
         if (txtId.getText().isEmpty()) {
             JOptionPane.showMessageDialog(this, "Selecione um funcionário para excluir!");
@@ -307,13 +380,13 @@ public class FuncionarioForm extends JFrame {
 
         int id = Integer.parseInt(txtId.getText());
         int confirm = JOptionPane.showConfirmDialog(this,
-                "Deseja realmente excluir este funcionário?", "Confirmação",
-                JOptionPane.YES_NO_OPTION);
+                "❓ Deseja realmente excluir este funcionário?",
+                "Confirmação", JOptionPane.YES_NO_OPTION);
 
         if (confirm == JOptionPane.YES_OPTION) {
             Map<String, Object> response = funcionarioControl.destroy(id);
             if ((Boolean) response.get("success")) {
-                JOptionPane.showMessageDialog(this, response.get("message"));
+                JOptionPane.showMessageDialog(this, "🗑️ " + response.get("message"));
                 limparCampos();
                 carregarTodosFuncionarios();
             } else {
@@ -324,6 +397,9 @@ public class FuncionarioForm extends JFrame {
         }
     }
 
+    /**
+     * 🖱️ Ao clicar na tabela, preenche o formulário com os dados selecionados.
+     */
     private void selecionarFuncionarioDaTabela() {
         int row = tabelaFuncionarios.getSelectedRow();
         if (row != -1) {
@@ -332,7 +408,7 @@ public class FuncionarioForm extends JFrame {
             txtEmail.setText((String) tableModel.getValueAt(row, 2));
             chkValeTransporte.setSelected((Boolean) tableModel.getValueAt(row, 3));
 
-            // Seleciona o cargo no JComboBox
+            // 🔄 Seleciona o cargo correto no comboBox
             String nomeCargo = (String) tableModel.getValueAt(row, 4);
             for (int i = 0; i < cbCargo.getItemCount(); i++) {
                 if (cbCargo.getItemAt(i).getNomeCargo().equals(nomeCargo)) {
@@ -343,6 +419,9 @@ public class FuncionarioForm extends JFrame {
         }
     }
 
+    /**
+     * 🧼 Limpa os campos e reseta a seleção da tabela.
+     */
     private void limparCampos() {
         txtId.setText("");
         txtNome.setText("");
@@ -354,6 +433,9 @@ public class FuncionarioForm extends JFrame {
         tabelaFuncionarios.clearSelection();
     }
 
+    /**
+     * 🔄 Atualiza a tabela com a lista de funcionários.
+     */
     private void atualizarTabela(List<Funcionario> funcionarios) {
         tableModel.setRowCount(0);
         for (Funcionario f : funcionarios) {
@@ -367,6 +449,9 @@ public class FuncionarioForm extends JFrame {
         }
     }
 
+    /**
+     * ▶️ Ponto de entrada da aplicação Swing.
+     */
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             try { UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName()); }
