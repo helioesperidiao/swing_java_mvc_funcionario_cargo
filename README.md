@@ -207,6 +207,8 @@ Classe principal: forms.LoginForm.java
 
 Faça login
 
+"usuario": "helioesperidiao@gmail.com"
+"senha": "@Helio123456"
 
 Informe um e-mail e senha cadastrados no banco
 
