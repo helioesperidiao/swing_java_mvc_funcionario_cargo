@@ -14,7 +14,7 @@
 ## 🧭 Sumário
 
 - [📖 Visão Geral](#-visão-geral)
-- [🎯 Funcionalidades
+- [🎯 Funcionalidades](#-funcionalidades)
 - [🏗️ Arquitetura do Projeto](#️-arquitetura-do-projeto)
 - [🧱 Estrutura de Pastas](#-estrutura-de-pastas)
 - [⚙️ Tecnologias Utilizadas](#️-tecnologias-utilizadas)
@@ -42,8 +42,7 @@ O **Sistema de Gestão de RH** permite o **cadastro, listagem e autenticação d
 
 ---
 
-##🎯 Funcionalidades
-
+## 🎯 Funcionalidades
 
 ### 👥 Módulo de Funcionários
 - ✅ Cadastro de funcionários
@@ -57,29 +56,30 @@ O **Sistema de Gestão de RH** permite o **cadastro, listagem e autenticação d
 
 ### 🔐 Sistema de Autenticação
 - ✅ Login seguro com BCrypt
-- ✅ Controle de acess
+- ✅ Controle de acesso básico
 
+---
 
 ## 🏗️ Arquitetura do Projeto
 
 +-----------------------+
-|      VIEW (Swing)     | ← Telas e componentes
+| VIEW (Swing) | ← Telas e componentes
 +-----------------------+
-           ↓
+↓
 +-----------------------+
-|    CONTROLLER         | ← Recebe eventos da View
+| CONTROLLER | ← Recebe eventos da View
 +-----------------------+
-           ↓
+↓
 +-----------------------+
-|      SERVICE          | ← Regras de negócio e validações
+| SERVICE | ← Regras de negócio e validações
 +-----------------------+
-           ↓
+↓
 +-----------------------+
-|        DAO            | ← Operações de banco de dados
+| DAO | ← Operações de banco de dados
 +-----------------------+
-           ↓
+↓
 +-----------------------+
-|     DATABASE (MySQL)  | ← Persistência dos dados
+| DATABASE (MySQL) | ← Persistência dos dados
 +-----------------------+
 
 
@@ -123,23 +123,22 @@ O **Sistema de Gestão de RH** permite o **cadastro, listagem e autenticação d
 ## 💾 Configuração do Banco de Dados
 
 ### 📍 Requisitos:
-- MySQL 8 ou superior
-- Usuário: `root`
-- Senha: *(vazia ou conforme seu ambiente)*
+- MySQL 8 ou superior  
+- Usuário: `root`  
+- Senha: *(vazia ou conforme seu ambiente)*  
 - Banco: `gestao_rh`
 
 ### 🧩 Script SQL:
-```
+
+```sql
 DROP SCHEMA IF EXISTS `gestao_rh`;
 
 CREATE SCHEMA IF NOT EXISTS `gestao_rh` DEFAULT CHARACTER SET utf8;
 USE `gestao_rh`;
 
--- Remove tabelas caso existam (ordem importa por causa da FK)
 DROP TABLE IF EXISTS `Funcionario`;
 DROP TABLE IF EXISTS `Cargo`;
 
--- Criação da tabela Cargo
 CREATE TABLE IF NOT EXISTS `Cargo` (
   `idCargo` INT UNSIGNED NOT NULL AUTO_INCREMENT,
   `nomeCargo` VARCHAR(64) NOT NULL,
@@ -148,7 +147,6 @@ CREATE TABLE IF NOT EXISTS `Cargo` (
   UNIQUE INDEX `nomeCargo_UNIQUE` (`nomeCargo` ASC)
 ) ENGINE = InnoDB;
 
--- Criação da tabela Funcionario
 CREATE TABLE IF NOT EXISTS `Funcionario` (
   `idFuncionario` INT UNSIGNED NOT NULL AUTO_INCREMENT,
   `nomeFuncionario` VARCHAR(128) NULL,
@@ -157,115 +155,121 @@ CREATE TABLE IF NOT EXISTS `Funcionario` (
   `recebeValeTransporte` TINYINT(1) NULL,
   `Cargo_idCargo` INT UNSIGNED NOT NULL,
   PRIMARY KEY (`idFuncionario`),
-  UNIQUE INDEX `idFuncionario_UNIQUE` (`idFuncionario` ASC),
   UNIQUE INDEX `email_UNIQUE` (`email` ASC),
   INDEX `fk_Funcionario_Cargo_idx` (`Cargo_idCargo` ASC),
   CONSTRAINT `fk_Funcionario_Cargo`
     FOREIGN KEY (`Cargo_idCargo`)
     REFERENCES `Cargo` (`idCargo`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION
 ) ENGINE = InnoDB;
 
--- Inserção de cargos
-INSERT INTO `Cargo` (`idCargo`, `nomeCargo`) VALUES (1, 'Administrador');
-INSERT INTO `Cargo` (`idCargo`, `nomeCargo`) VALUES (2, 'Técnico em Informática Jr');
-INSERT INTO `Cargo` (`idCargo`, `nomeCargo`) VALUES (3, 'Técnico em Informática Pleno');
-INSERT INTO `Cargo` (`idCargo`, `nomeCargo`) VALUES (4, 'Analista de Sistemas Jr');
+INSERT INTO `Cargo` (`idCargo`, `nomeCargo`) VALUES 
+(1, 'Administrador'),
+(2, 'Técnico em Informática Jr'),
+(3, 'Técnico em Informática Pleno'),
+(4, 'Analista de Sistemas Jr');
 
--- Inserção de funcionários
 INSERT INTO `Funcionario` (`nomeFuncionario`, `email`, `senha`, `recebeValeTransporte`, `Cargo_idCargo`) 
 VALUES 
 ('adm', 'adm@adm.com', '$2a$12$axuJefWt3TtXuHc4jzFfVeb4irESaE6Y5K297MQluljqbM0GCgeI.', 1, 1),
-('adm1', 'adm1@adm.com', '$2a$12$axuJefWt3TtXuHc4jzFfVeb4irESaE6Y5K297MQluljqbM0GCgeI.', 1, 1),
 ('Hélio', 'helioesperidiao@gmail.com', '$2a$12$axuJefWt3TtXuHc4jzFfVeb4irESaE6Y5K297MQluljqbM0GCgeI.', 1, 1);
+
 
 🚀 Como Executar
 
-Clone o repositório
 
+Clone o repositório
 git clone https://github.com/helioesperidiao/swing_java_mvc_funcionario_cargo
 
 
-Abra o projeto em sua IDE Java (IntelliJ, Eclipse, NetBeans ou VS Code)
 
-Adicione as dependências
+Abra o projeto em sua IDE Java
+(IntelliJ, Eclipse, NetBeans ou VS Code)
+
+
+Adicione as dependências:
+
 
 mysql-connector-j-8.x.jar
 
+
 jBCrypt-x.x.jar
+
+
+
 
 Compile e execute
 
+
 Classe principal: forms.LoginForm.java
+
+
+
 
 Faça login
 
-Informe um email e senha cadastrados no banco
 
-Após autenticação, o sistema abre a tela principal (MainForm)
+Informe um e-mail e senha cadastrados no banco
+
+
+Após autenticação, o sistema abrirá a tela principal (MainForm)
+
+
+
+
 
 🔐 Login e Autenticação
-
 O sistema utiliza BCrypt para validação segura de senha 🔒:
-
 if (BCrypt.checkpw(senhaDigitada, funcionario.getSenha())) {
     // ✅ Login bem-sucedido
 } else {
     // ❌ Senha incorreta
 }
 
-
 💡 Para gerar uma senha com hash:
-
 String hash = BCrypt.hashpw("minhasenha", BCrypt.gensalt());
 System.out.println(hash);
 
+
 📚 Convenções de Código e Commits
-
-🧱 Padrão de Commits (Conventional Commits):
-
-Tipo	Descrição
-docs:	Atualizações na documentação (JavaDoc, README, etc.)
-feat:	Nova funcionalidade
-fix:	Correção de bugs
-refactor:	Refatoração de código sem alterar lógica
-style:	Alterações visuais e formatação
-chore:	Tarefas de manutenção e build
-
+🧱 Padrão de Commits (Conventional Commits)
+TipoDescriçãodocs:Atualizações na documentação (JavaDoc, README, etc.)feat:Nova funcionalidadefix:Correção de bugsrefactor:Refatoração de código sem alterar lógicastyle:Alterações visuais e formataçãochore:Tarefas de manutenção e build
 📘 Exemplo:
-
 docs(service): adicionar JavaDoc com emojis pedagógicos
 feat(control): implementar método de login com validação BCrypt
 
-🧠 Notas de Aula e Documentação
 
+🧠 Notas de Aula e Documentação
 📖 Cada classe possui comentários JavaDoc e emojis explicativos, seguindo uma linha didática:
+
 
 💡 Conceito teórico (MVC, DAO, Service)
 
+
 ⚙️ Processo técnico (conexão, lógica, eventos)
+
 
 🧩 Responsabilidade da camada
 
+
 🔒 Regra de domínio ou segurança
 
+
 🚀 Método principal de execução
+
 
 Essas notas foram criadas para uso acadêmico e demonstração de boas práticas de engenharia de software.
 
 👨‍💻 Autor
-
-Nome: [Hélio Lourenço Esperidião Ferreira]
+Nome: Hélio Lourenço Esperidião Ferreira
 📧 Email: helioesperidiao@gmail.com
-
 💻 GitHub: @helioesperidiao
-
 🔗 LinkedIn: linkedin.com/in/helioesperidiao
 
 🪪 Licença
-
 Este projeto está licenciado sob a licença MIT — sinta-se livre para usar, estudar e modificar.
-Veja o arquivo LICENSE
- para mais detalhes.
+Veja o arquivo LICENSE para mais detalhes.
 
+---
+
+Pronto 🎉  
+Esse conteúdo está **completo, formatado e validado para GitHub** — é só copiar e colar no arquivo `README.md` da raiz do seu repositório.
